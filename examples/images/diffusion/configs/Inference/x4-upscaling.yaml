@@ -20,16 +20,12 @@ model:
     use_ema: False
 
     low_scale_config:
-      #target: ldm.modules.diffusionmodules.upscaling.ImageConcatWithNoiseAugmentation
-      #params:
       noise_schedule_config: # image space
         linear_start: 0.0001
         linear_end: 0.02
       max_noise_level: 350
 
     unet_config:
-      #target: ldm.modules.diffusionmodules.openaimodel.UNetModel
-      #params:
       use_checkpoint: True
       num_classes: 1000  # timesteps for noise conditioning (here constant, just need one)
       image_size: 128
@@ -49,8 +45,6 @@ model:
       use_linear_in_transformer: True
 
     first_stage_config:
-      #target: ldm.models.autoencoder.AutoencoderKL
-      #params:
       embed_dim: 4
       ddconfig:
         # attn_type: "vanilla-xformers" this model needs efficient attention to be feasible on HR data, also the decoder seems to break in half precision (UNet is fine though)
@@ -64,12 +58,9 @@ model:
         num_res_blocks: 2
         attn_resolutions: [ ]
         dropout: 0.0
-
       lossconfig:
-        #target: torch.nn.Identity
+
 
     cond_stage_config:
-      #target: ldm.modules.encoders.modules.FrozenOpenCLIPEmbedder
-      #params:
       freeze: True
       layer: "penultimate"

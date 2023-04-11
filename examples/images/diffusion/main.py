@@ -747,38 +747,38 @@ if __name__ == "__main__":
         #Instantiate items according to the configs
         trainer_kwargs.setdefault("callbacks", [])
         setup_callback_config =  {
-                    "resume": opt.resume,                 # resume training if applicable
-                    "now": now, 
-                    "logdir": logdir,                     # directory to save the log file
-                    "ckptdir": ckptdir,                   # directory to save the checkpoint file
-                    "cfgdir": cfgdir,                     # directory to save the configuration file
-                    "config": config,                     # configuration dictionary
-                    "lightning_config": lightning_config, # LightningModule configuration
-                }
+            "resume": opt.resume,                 # resume training if applicable
+            "now": now, 
+            "logdir": logdir,                     # directory to save the log file
+            "ckptdir": ckptdir,                   # directory to save the checkpoint file
+            "cfgdir": cfgdir,                     # directory to save the configuration file
+            "config": config,                     # configuration dictionary
+            "lightning_config": lightning_config, # LightningModule configuration
+            }
         trainer_kwargs["callbacks"].append(SetupCallback(**setup_callback_config))
         
         image_logger_config = {
-                    "batch_frequency": 750,               # how frequently to log images
-                    "max_images": 4,                      # maximum number of images to log
-                    "clamp": True                         # whether to clamp pixel values to [0,1]
-                }
+    
+            "batch_frequency": 750,               # how frequently to log images
+            "max_images": 4,                      # maximum number of images to log
+            "clamp": True                         # whether to clamp pixel values to [0,1]
+            }
         trainer_kwargs["callbacks"].append(ImageLogger(**image_logger_config))
         
         learning_rate_logger_config = {
-                    "logging_interval": "step",           # logging frequency (either 'step' or 'epoch')
+            "logging_interval": "step",           # logging frequency (either 'step' or 'epoch')
         # "log_momentum": True                            # whether to log momentum (currently commented out)
-                }
+            }
         trainer_kwargs["callbacks"].append(LearningRateMonitor(**learning_rate_logger_config))
         
         metrics_over_trainsteps_checkpoint_config= {
-                    #"target": LIGHTNING_PACK_NAME + 'callbacks.ModelCheckpoint',
-                        "dirpath": os.path.join(ckptdir, 'trainstep_checkpoints'),
-                        "filename": "{epoch:06}-{step:09}",
-                        "verbose": True,
-                        'save_top_k': -1,
-                        'every_n_train_steps': 10000,
-                        'save_weights_only': True
-                    }
+            "dirpath": os.path.join(ckptdir, 'trainstep_checkpoints'),
+            "filename": "{epoch:06}-{step:09}",
+            "verbose": True,
+            'save_top_k': -1,
+            'every_n_train_steps': 10000,
+            'save_weights_only': True
+            }
         trainer_kwargs["callbacks"].append(ModelCheckpoint(**metrics_over_trainsteps_checkpoint_config))
         trainer_kwargs["callbacks"].append(CUDACallback())
 

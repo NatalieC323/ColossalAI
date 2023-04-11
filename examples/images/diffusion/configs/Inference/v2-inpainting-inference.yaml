@@ -19,8 +19,6 @@ model:
     use_ema: False
 
     unet_config:
-      #target: ldm.modules.diffusionmodules.openaimodel.UNetModel
-      #params:
       use_checkpoint: True
       image_size: 32 # unused
       in_channels: 9
@@ -37,8 +35,6 @@ model:
       legacy: False
 
     first_stage_config:
-      #target: ldm.models.autoencoder.AutoencoderKL
-      #params:
       embed_dim: 4
       monitor: val/rec_loss
       ddconfig:
@@ -58,18 +54,13 @@ model:
         attn_resolutions: [ ]
         dropout: 0.0
       lossconfig:
-        #target: torch.nn.Identity
 
     cond_stage_config:
-      #target: ldm.modules.encoders.modules.FrozenOpenCLIPEmbedder
-      #params:
       freeze: True
       layer: "penultimate"
 
 
 data:
-  #target: ldm.data.laion.WebDataModuleFromConfig
-  #params:
   tar_base: null  # for concat as in LAION-A
   p_unsafe_threshold: 0.1
   filter_word_list: "data/filters.yaml"
@@ -132,8 +123,6 @@ lightning:
         every_n_train_steps: 10000
 
     image_logger:
-      target: main.ImageLogger
-      params:
         enable_autocast: False
         disabled: False
         batch_frequency: 1000

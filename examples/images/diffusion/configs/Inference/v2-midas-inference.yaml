@@ -19,13 +19,9 @@ model:
     use_ema: False
 
     depth_stage_config:
-      #target: ldm.modules.midas.api.MiDaSInference
-      #params:
       model_type: "dpt_hybrid"
 
     unet_config:
-      #target: ldm.modules.diffusionmodules.openaimodel.UNetModel
-      #params:
       use_checkpoint: True
       image_size: 32 # unused
       in_channels: 5
@@ -42,8 +38,6 @@ model:
       legacy: False
 
     first_stage_config:
-      #target: ldm.models.autoencoder.AutoencoderKL
-      #params:
       embed_dim: 4
       monitor: val/rec_loss
       ddconfig:
@@ -63,10 +57,7 @@ model:
         attn_resolutions: [ ]
         dropout: 0.0
       lossconfig:
-        #target: torch.nn.Identity
 
     cond_stage_config:
-      #target: ldm.modules.encoders.modules.FrozenOpenCLIPEmbedder
-      #params:
       freeze: True
       layer: "penultimate"
