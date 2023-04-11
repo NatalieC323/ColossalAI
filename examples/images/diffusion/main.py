@@ -568,7 +568,8 @@ if __name__ == "__main__":
     #          target: path to test dataset
     #          params:
     #              key: value
-    # lightning: (optional, has sane defaults and can be specified on cmdline)
+    #
+    # lightning: (optional, has same defaults and can be specified on cmdline)
     #   trainer:
     #       additional arguments to trainer
     #   logger:
@@ -646,7 +647,7 @@ if __name__ == "__main__":
     # Sets the seed for the random number generator to ensure reproducibility
     seed_everything(opt.seed)
 
-    # Intinalize and save configuratioon using teh OmegaConf library. 
+    # Intinalize and save configuratioon using the OmegaConf library. 
     try:
         # init and save configs
         configs = [OmegaConf.load(cfg) for cfg in opt.base]
@@ -711,6 +712,7 @@ if __name__ == "__main__":
             logger_cfg = default_logger_cfg
             trainer_kwargs["logger"] = TensorBoardLogger(**logger_cfg)
 
+
         # config the strategy, defualt is ddp
         if "strategy" in trainer_config:
             strategy_cfg = trainer_config["strategy"]
@@ -718,6 +720,7 @@ if __name__ == "__main__":
         else:
             strategy_cfg = {"find_unused_parameters": False}
             trainer_kwargs["strategy"] = DDPStrategy(**strategy_cfg)
+
 
         # Set up ModelCheckpoint callback to save best models
         # modelcheckpoint - use TrainResult/EvalResult(checkpoint_on=metric) to
@@ -728,6 +731,7 @@ if __name__ == "__main__":
                 "verbose": True,
                 "save_last": True,
             }
+        
         if hasattr(model, "monitor"):
             default_modelckpt_cfg["monitor"] = model.monitor
             default_modelckpt_cfg["save_top_k"] = 3
@@ -762,6 +766,7 @@ if __name__ == "__main__":
             "batch_frequency": 750,               # how frequently to log images
             "max_images": 4,                      # maximum number of images to log
             "clamp": True                         # whether to clamp pixel values to [0,1]
+
             }
         trainer_kwargs["callbacks"].append(ImageLogger(**image_logger_config))
         
@@ -785,6 +790,7 @@ if __name__ == "__main__":
         # Create a Trainer object with the specified command-line arguments and keyword arguments, and set the log directory
         trainer = Trainer.from_argparse_args(trainer_opt, **trainer_kwargs)
         trainer.logdir = logdir
+
 
         # Create a data module based on the configuration file
         data = DataModuleFromConfig(**config.data)

@@ -42,6 +42,7 @@ from omegaconf import ListConfig
 from torch.optim.lr_scheduler import LambdaLR
 from torchvision.utils import make_grid
 from tqdm import tqdm
+from ldm.modules.midas.api import MiDaSInference
 
 __conditioning_keys__ = {'concat': 'c_concat', 'crossattn': 'c_crossattn', 'adm': 'y'}
 
@@ -710,12 +711,14 @@ class LatentDiffusion(DDPM):
                 # self.be_unconditional = True
             else:
                 model = FrozenOpenCLIPEmbedder(**config)
+
                 self.cond_stage_model = model.eval()
                 self.cond_stage_model.train = disabled_train
                 for param in self.cond_stage_model.parameters():
                     param.requires_grad = False
         else:
             model = FrozenOpenCLIPEmbedder(**config)
+
             self.cond_stage_model = model
 
     def _get_denoise_row_from_list(self, samples, desc='', force_no_decoder_quantization=False):
@@ -1481,7 +1484,6 @@ class LatentDiffusion(DDPM):
         # opt = torch.optim.AdamW(params, lr=lr)
         if self.use_scheduler:
             scheduler = LambdaLinearScheduler(**self.scheduler_config)
-
             rank_zero_info("Setting up LambdaLR scheduler...")
             scheduler = [{'scheduler': LambdaLR(opt, lr_lambda=scheduler.schedule), 'interval': 'step', 'frequency': 1}]
             return [opt], scheduler

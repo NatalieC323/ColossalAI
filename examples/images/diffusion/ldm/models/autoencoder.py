@@ -5,7 +5,7 @@ from torch import nn
 from torch.nn import functional as F
 from torch.nn import Identity
 from contextlib import contextmanager
-
+from torch.nn import Identity
 from ldm.modules.diffusionmodules.model import Encoder, Decoder
 from ldm.modules.distributions.distributions import DiagonalGaussianDistribution
 from ldm.modules.ema import LitEma
@@ -30,6 +30,7 @@ class AutoencoderKL(pl.LightningModule):
         self.encoder = Encoder(**ddconfig)
         self.decoder = Decoder(**ddconfig)
         self.loss = Identity()
+
         assert ddconfig["double_z"]
         self.quant_conv = torch.nn.Conv2d(2*ddconfig["z_channels"], 2*embed_dim, 1)
         self.post_quant_conv = torch.nn.Conv2d(embed_dim, ddconfig["z_channels"], 1)
