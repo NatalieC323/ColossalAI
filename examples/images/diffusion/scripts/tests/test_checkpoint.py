@@ -7,6 +7,7 @@ from datetime import datetime
 
 from diffusers import StableDiffusionPipeline
 import torch
+
 from main import get_parser
 from ldm.modules.diffusionmodules.openaimodel import UNetModel
 
@@ -17,7 +18,7 @@ if __name__ == "__main__":
             config = f.read()
         base_config = yaml.load(config, Loader=yaml.FullLoader)
         unet_config = base_config['model']['params']['unet_config']
-        diffusion_model = UNetModel(**unet_config.get("params", dict())).to("cuda:0")
+        diffusion_model = UNetModel(**unet_config).to("cuda:0")
 
         pipe = StableDiffusionPipeline.from_pretrained(
             "/data/scratch/diffuser/stable-diffusion-v1-4"

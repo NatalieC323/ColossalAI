@@ -27,6 +27,7 @@ from ldm.models.autoencoder import *
 from ldm.models.autoencoder import AutoencoderKL, IdentityFirstStage
 from ldm.models.diffusion.ddim import *
 from ldm.models.diffusion.ddim import DDIMSampler
+from ldm.modules.midas.api import MiDaSInference
 from ldm.modules.diffusionmodules.model import *
 from ldm.modules.diffusionmodules.model import Decoder, Encoder, Model
 from ldm.modules.diffusionmodules.openaimodel import *
@@ -36,7 +37,7 @@ from ldm.modules.distributions.distributions import DiagonalGaussianDistribution
 from ldm.modules.diffusionmodules.upscaling import ImageConcatWithNoiseAugmentation
 from ldm.modules.ema import LitEma
 from ldm.modules.encoders.modules import *
-from ldm.util import count_params, default, exists, instantiate_from_config, isimage, ismap, log_txt_as_img, mean_flat
+from ldm.util import count_params, default, exists, isimage, ismap, log_txt_as_img, mean_flat
 from omegaconf import ListConfig
 from torch.optim.lr_scheduler import LambdaLR
 from torchvision.utils import make_grid
@@ -693,7 +694,7 @@ class LatentDiffusion(DDPM):
             self.make_cond_schedule()
 
     def instantiate_first_stage(self, config):
-        model = AutoencoderKL(**config.get("params", dict()))
+        model = AutoencoderKL(**config)
         self.first_stage_model = model.eval()
         self.first_stage_model.train = disabled_train
         for param in self.first_stage_model.parameters():
@@ -709,15 +710,15 @@ class LatentDiffusion(DDPM):
                 self.cond_stage_model = None
                 # self.be_unconditional = True
             else:
-                model = model = FrozenOpenCLIPEmbedder(**config.get("params", dict()))
+                model = FrozenOpenCLIPEmbedder(**config)
+
                 self.cond_stage_model = model.eval()
                 self.cond_stage_model.train = disabled_train
                 for param in self.cond_stage_model.parameters():
                     param.requires_grad = False
         else:
-            assert config != '__is_first_stage__'
-            assert config != '__is_unconditional__'
-            model = FrozenOpenCLIPEmbedder(**config.get("params", dict()))
+            model = FrozenOpenCLIPEmbedder(**config)
+
             self.cond_stage_model = model
 
     def _get_denoise_row_from_list(self, samples, desc='', force_no_decoder_quantization=False):
@@ -1482,9 +1483,7 @@ class LatentDiffusion(DDPM):
 
         # opt = torch.optim.AdamW(params, lr=lr)
         if self.use_scheduler:
-            assert 'target' in self.scheduler_config
-            scheduler = LambdaLinearScheduler(**self.scheduler_config.get("params", dict()))
-
+            scheduler = LambdaLinearScheduler(**self.scheduler_config)
             rank_zero_info("Setting up LambdaLR scheduler...")
             scheduler = [{'scheduler': LambdaLR(opt, lr_lambda=scheduler.schedule), 'interval': 'step', 'frequency': 1}]
             return [opt], scheduler
@@ -1505,7 +1504,7 @@ class DiffusionWrapper(pl.LightningModule):
     def __init__(self, diff_model_config, conditioning_key):
         super().__init__()
         self.sequential_cross_attn = diff_model_config.pop("sequential_crossattn", False)
-        self.diffusion_model = UNetModel(**diff_model_config.get("params", dict()))
+        self.diffusion_model = UNetModel(**diff_model_config)
         self.conditioning_key = conditioning_key
         assert self.conditioning_key in [None, 'concat', 'crossattn', 'hybrid', 'adm', 'hybrid-adm', 'crossattn-adm']
 
@@ -1554,7 +1553,7 @@ class LatentUpscaleDiffusion(LatentDiffusion):
         self.noise_level_key = noise_level_key
 
     def instantiate_low_stage(self, config):
-        model = ImageConcatWithNoiseAugmentation(**config.get("params", dict()))
+        model = ImageConcatWithNoiseAugmentation(**config)
         self.low_scale_model = model.eval()
         self.low_scale_model.train = disabled_train
         for param in self.low_scale_model.parameters():
@@ -1936,7 +1935,7 @@ class LatentDepth2ImageDiffusion(LatentFinetuneDiffusion):
 
     def __init__(self, depth_stage_config, concat_keys=("midas_in",), *args, **kwargs):
         super().__init__(concat_keys=concat_keys, *args, **kwargs)
-        self.depth_model = MiDaSInference(**depth_stage_config.get("params", dict()))
+        self.depth_model = MiDaSInference(**depth_stage_config)
         self.depth_stage_key = concat_keys[0]
 
     @torch.no_grad()
@@ -2009,7 +2008,7 @@ class LatentUpscaleFinetuneDiffusion(LatentFinetuneDiffusion):
             self.low_scale_key = low_scale_key
 
     def instantiate_low_stage(self, config):
-        model = ImageConcatWithNoiseAugmentation(**config.get("params", dict()))
+        model = ImageConcatWithNoiseAugmentation(**config)
         self.low_scale_model = model.eval()
         self.low_scale_model.train = disabled_train
         for param in self.low_scale_model.parameters():
